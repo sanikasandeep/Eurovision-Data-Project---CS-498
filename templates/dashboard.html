@@ -1,1 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eurovision 2018 · Tweet Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #05071a;
+            --surface:   #0b0f2e;
+            --border:    #1a2050;
+            --blue:      #1a6bff;
+            --blue-soft: #2a4ccc;
+            --gold:      #f5c842;
+            --pink:      #e040fb;
+            --text:      #dde3ff;
+            --muted:     #5a6490;
+            --white:     #ffffff;
+        }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse 60% 40% at 80% 0%, rgba(26,107,255,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 30% at 10% 90%, rgba(224,64,251,0.05) 0%, transparent 60%);
+        }
+
+        /* ── Header ── */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: rgba(5,7,26,0.93);
+            backdrop-filter: blur(16px);
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .brand .star { color: var(--gold); font-size: 1.1rem; }
+
+        .header-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--muted);
+            letter-spacing: 0.06em;
+        }
+
+        /* ── Nav pills ── */
+        .nav-pills {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1.25rem 2.5rem;
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .nav-pills a {
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+
+        .nav-pills a:hover {
+            color: var(--text);
+            border-color: var(--blue-soft);
+            background: rgba(26,107,255,0.08);
+        }
+
+        /* ── Layout ── */
+        .page { max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+
+        .section {
+            margin-bottom: 3.5rem;
+            scroll-margin-top: 5rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--gold);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.01em;
+        }
+
+        .section-desc {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-left: auto;
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+            transition: border-color 0.15s;
+        }
+
+        .card:hover { border-color: var(--blue-soft); }
+
+        .pill {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            padding: 0.18rem 0.55rem;
+            border-radius: 20px;
+            background: rgba(26,107,255,0.12);
+            color: var(--blue);
+            border: 1px solid rgba(26,107,255,0.22);
+        }
+
+        .pill.gold {
+            background: rgba(245,200,66,0.1);
+            color: var(--gold);
+            border-color: rgba(245,200,66,0.22);
+        }
+
+        /* ── Q1 Threads ── */
+        .threads-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .thread-card { padding: 1.25rem 1.5rem; }
+
+        .thread-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .tweet-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .tweet-row:last-child { margin-bottom: 0; }
+
+        .tweet-connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 3px;
+            flex-shrink: 0;
+        }
+
+        .tweet-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .tweet-line {
+            width: 1px;
+            flex: 1;
+            background: var(--border);
+            margin-top: 3px;
+        }
+
+        .tweet-body {
+            flex: 1;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+        }
+
+        .tweet-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.35rem;
+        }
+
+        .tweet-name { font-weight: 600; font-size: 0.85rem; color: var(--white); }
+
+        .tweet-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--muted);
+        }
+
+        .tweet-text {
+            font-size: 0.875rem;
+            line-height: 1.55;
+            margin-bottom: 0.5rem;
+        }
+
+        .tweet-ids {
+            display: flex;
+            gap: 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--muted);
+        }
+
+        /* ── Q2 Countries ── */
+        .two-col {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem 1.5rem;
+        }
+
+        .stat-big {
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            color: var(--gold);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 0.4rem;
+        }
+
+        /* ── Table ── */
+        .table-card { padding: 0; overflow: hidden; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+
+        th {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 0.7rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 0.65rem 1rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(26,107,255,0.04); }
+
+        .bar-track {
+            height: 5px;
+            border-radius: 3px;
+            background: var(--border);
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+        }
+
+        /* ── Q3 Top User ── */
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .user-avatar {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            flex-shrink: 0;
+        }
+
+        .user-info { flex: 1; }
+        .user-name { font-size: 1.3rem; font-weight: 700; color: var(--white); }
+        .user-handle { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--gold); margin-top: 0.2rem; }
+        .user-count { font-size: 2.5rem; font-weight: 700; color: var(--gold); letter-spacing: -0.03em; line-height: 1; }
+        .user-count-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">
+        <span class="star">★</span> Eurovision 2018 · Tweet Analysis
+    </div>
+    <div class="header-meta">CS 498 · Data Management in the Cloud</div>
+</header>
+
+<div class="nav-pills">
+    <a href="#q1">Q1 · Thread Finder</a>
+    <a href="#q2">Q2 · Top Country</a>
+    <a href="#q3">Q3 · Most Active User</a>
+    <a href="#q4">Q4 · Trending Hashtags</a>
+</div>
+
+<div class="page">
+
+    <!-- Q1 -->
+    <div class="section" id="q1">
+        <div class="section-header">
+            <span class="section-label">Query 1</span>
+            <span class="section-title">Thread Finder</span>
+            <span class="section-desc">Reply chains by @{{ target_user }}</span>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <span class="pill gold">{{ threads|length }} thread(s) found</span>
+        </div>
+
+        <div class="threads-grid">
+            {% for thread in threads %}
+            <div class="card thread-card">
+                <div class="thread-meta">
+                    <span class="pill">Thread {{ loop.index }}</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted);">{{ thread|length }} tweet(s)</span>
+                </div>
+                {% for tweet in thread %}
+                <div class="tweet-row">
+                    <div class="tweet-connector">
+                        <div class="tweet-dot" style="background: {% if loop.first %}var(--gold){% else %}var(--blue){% endif %};"></div>
+                        {% if not loop.last %}<div class="tweet-line"></div>{% endif %}
+                    </div>
+                    <div class="tweet-body">
+                        <div class="tweet-top">
+                            <span class="tweet-name">{{ tweet.user.name }}</span>
+                            <span class="tweet-time">{{ tweet.created_at }}</span>
+                        </div>
+                        <p class="tweet-text">{{ tweet.text }}</p>
+                        <div class="tweet-ids">
+                            <span>id: {{ tweet._id }}</span>
+                            {% if tweet.in_reply_to_status_id_str %}
+                            <span>↩ {{ tweet.in_reply_to_status_id_str }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card"><p style="color: var(--muted);">No threads found.</p></div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="section" id="q2">
+        <div class="section-header">
+            <span class="section-label">Query 2</span>
+            <span class="section-title">Most Active Country</span>
+            <span class="section-desc">By number of geotagged tweets</span>
+        </div>
+
+        {% if countries %}
+        {% set top = countries[0] %}
+        {% set max_count = top.tweet_count %}
+        <div class="two-col">
+            <div class="card stat-card">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem;">Top Country</div>
+                <div class="stat-big">{{ top._id }}</div>
+                <div class="stat-label">{{ top.tweet_count }} tweets</div>
+            </div>
+            <div class="card table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:2.5rem;">#</th>
+                            <th>Country</th>
+                            <th style="width:7rem;">Tweets</th>
+                            <th>Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in countries %}
+                        <tr>
+                            <td style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--muted);">{{ loop.index }}</td>
+                            <td style="font-weight:500; color:{% if loop.first %}var(--gold){% else %}var(--text){% endif %};">{{ r._id }}</td>
+                            <td style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">{{ r.tweet_count }}</td>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:0.75rem;">
+                                    <div class="bar-track">
+                                        <div class="bar-fill" style="width:{{ (r.tweet_count / max_count * 100)|round }}%;"></div>
+                                    </div>
+                                    <span style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--muted); width:3rem; text-align:right;">{{ ((r.tweet_count / max_count)*100)|round(1) }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="card"><p style="color:var(--muted);">No geotagged tweets found.</p></div>
+        {% endif %}
+    </div>
+
+    <!-- Q3 -->
+    <div class="section" id="q3">
+        <div class="section-header">
+            <span class="section-label">Query 3</span>
+            <span class="section-title">Most Active User</span>
+            <span class="section-desc">Highest tweet count in dataset</span>
+        </div>
+
+        {% if top_user %}
+        <div class="card user-card">
+            <div class="user-avatar">{{ top_user.name[0] if top_user.name else '?' }}</div>
+            <div class="user-info">
+                <div class="user-name">{{ top_user.name }}</div>
+                <div class="user-handle">@{{ top_user._id }}</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="user-count">{{ top_user.tweet_count }}</div>
+                <div class="user-count-label">total tweets</div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card"><p style="color:var(--muted);">No results found.</p></div>
+        {% endif %}
+    </div>
+
+    <!-- Q4 -->
+    <div class="section" id="q4">
+        <div class="section-header">
+            <span class="section-label">Query 4</span>
+            <span class="section-title">Trending Hashtags</span>
+            <span class="section-desc">Top 100 by tweet count</span>
+        </div>
+
+        {% if hashtags %}
+        {% set max_count = hashtags[0].tweet_count %}
+        <div class="card table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:3rem;">#</th>
+                        <th>Hashtag</th>
+                        <th style="width:7rem;">Tweets</th>
+                        <th>Distribution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in hashtags %}
+                    <tr>
+                        <td style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--muted);">{{ loop.index }}</td>
+                        <td style="font-family:'JetBrains Mono',monospace; color:{% if loop.index <= 3 %}var(--gold){% else %}var(--blue){% endif %}; font-size:0.85rem;">#{{ h._id }}</td>
+                        <td style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">{{ h.tweet_count }}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:0.75rem;">
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width:{{ (h.tweet_count / max_count * 100)|round }}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card"><p style="color:var(--muted);">No hashtags found.</p></div>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>

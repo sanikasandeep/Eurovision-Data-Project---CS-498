@@ -421,7 +421,6 @@
                             <th style="width:2.5rem;">#</th>
                             <th>Country</th>
                             <th style="width:7rem;">Tweets</th>
-                            <th>Share</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -430,14 +429,6 @@
                             <td style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--muted);">{{ loop.index }}</td>
                             <td style="font-weight:500; color:{% if loop.first %}var(--gold){% else %}var(--text){% endif %};">{{ r._id }}</td>
                             <td style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">{{ r.tweet_count }}</td>
-                            <td>
-                                <div style="display:flex; align-items:center; gap:0.75rem;">
-                                    <div class="bar-track">
-                                        <div class="bar-fill" style="width:{{ (r.tweet_count / max_count * 100)|round }}%;"></div>
-                                    </div>
-                                    <span style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--muted); width:3rem; text-align:right;">{{ ((r.tweet_count / max_count)*100)|round(1) }}%</span>
-                                </div>
-                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -491,7 +482,6 @@
                         <th style="width:3rem;">#</th>
                         <th>Hashtag</th>
                         <th style="width:7rem;">Tweets</th>
-                        <th>Distribution</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -500,13 +490,6 @@
                         <td style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--muted);">{{ loop.index }}</td>
                         <td style="font-family:'JetBrains Mono',monospace; color:{% if loop.index <= 3 %}var(--gold){% else %}var(--blue){% endif %}; font-size:0.85rem;">#{{ h._id }}</td>
                         <td style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">{{ h.tweet_count }}</td>
-                        <td>
-                            <div style="display:flex; align-items:center; gap:0.75rem;">
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width:{{ (h.tweet_count / max_count * 100)|round }}%;"></div>
-                                </div>
-                            </div>
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -85,10 +85,9 @@ def load_file(filepath):
 for i in range(3, 11):
     path = Path(f"Eurovision{i}.json")
     if path.exists():
-        print(f"Loading {path}...")
+        print(f"Loading {path}")
         load_file(path)
 
-print("Creating indexes...")
 collection.create_index([("user.screen_name", 1)])
 collection.create_index([("user.id_str", 1)])
 collection.create_index([("created_at", 1)])
@@ -96,4 +95,4 @@ collection.create_index([("place.country", 1)])
 collection.create_index([("entities.hashtags", 1)])
 collection.create_index([("in_reply_to_status_id_str", 1)])
 collection.create_index([("user.verified", 1)])
-print("Done!")
+print("Done")
